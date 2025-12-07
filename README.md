@@ -2,6 +2,8 @@
 
 An AI-powered bot that uses browser automation to complete Duolingo Japanese learning tests automatically. Built with [browser-use](https://github.com/browser-use/browser-use) for intelligent browser control.
 
+> **Quick Start**: See [QUICKSTART.md](QUICKSTART.md) for a 5-minute setup guide!
+
 ## Features
 
 - 🧠 **AI-Powered**: Uses advanced language models to understand and answer Japanese learning questions
