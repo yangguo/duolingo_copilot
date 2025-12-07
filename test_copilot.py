@@ -14,7 +14,7 @@ This script performs unit tests and integration tests to validate:
 import sys
 import os
 import unittest
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
+from unittest.mock import patch, AsyncMock
 from io import StringIO
 
 # Add current directory to path for imports
