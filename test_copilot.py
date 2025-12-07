@@ -13,7 +13,6 @@ This script performs unit tests and integration tests to validate:
 
 import sys
 import os
-import asyncio
 import unittest
 from unittest.mock import Mock, patch, AsyncMock, MagicMock
 from io import StringIO
