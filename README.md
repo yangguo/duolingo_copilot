@@ -16,7 +16,9 @@ An AI-powered bot that uses browser automation to complete Duolingo Japanese lea
 
 - Python 3.11 or higher
 - A Duolingo account
-- Browser Use API key (get free $10 credits at [Browser Use Cloud](https://cloud.browser-use.com/new-api-key))
+- One of the following:
+  - Browser Use API key (get free $10 credits at [Browser Use Cloud](https://cloud.browser-use.com/new-api-key))
+  - OpenAI API key or any OpenAI-compatible API endpoint
 
 ## Installation
 
@@ -42,9 +44,22 @@ An AI-powered bot that uses browser automation to complete Duolingo Japanese lea
    ```
    
    Edit `.env` and add your credentials:
+   
+   **Option 1: Browser Use Cloud (Recommended)**
    - `BROWSER_USE_API_KEY`: Get from [Browser Use Cloud](https://cloud.browser-use.com/new-api-key)
+   
+   **Option 2: OpenAI or OpenAI-compatible API**
+   - `OPENAI_API_KEY`: Your OpenAI API key
+   - `OPENAI_BASE_URL`: (Optional) Custom base URL for OpenAI-compatible APIs (e.g., `https://api.openai.com/v1`)
+   - `OPENAI_MODEL`: (Optional) Model name to use (default: `gpt-4`)
+   
+   **Duolingo Credentials (Optional)**
    - `DUOLINGO_USERNAME`: Your Duolingo email/username (optional)
    - `DUOLINGO_PASSWORD`: Your Duolingo password (optional)
+   
+   **Browser Configuration (Optional)**
+   - `CHROME_CDP_URL`: Connect to existing Chrome browser with remote debugging
+   - `CHROME_USER_DATA_DIR`: Use persistent Chrome profile to maintain login sessions
 
 ## Usage
 
@@ -62,6 +77,59 @@ The bot will:
 3. Start and complete a lesson using AI
 4. Answer all questions until the lesson is complete
 
+### Using Existing Browser Session
+
+If you already have Chrome open with Duolingo logged in, you can connect to it instead of launching a new browser:
+
+**Method 1: Remote Debugging (Recommended)**
+
+Use the provided helper script to start Chrome with remote debugging:
+
+```bash
+# Linux/macOS
+./start_chrome_debug.sh
+
+# Windows
+start_chrome_debug.bat
+```
+
+Or start Chrome manually:
+```bash
+# Windows
+chrome.exe --remote-debugging-port=9222
+
+# macOS
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
+
+# Linux
+google-chrome --remote-debugging-port=9222
+```
+
+Then:
+1. Log in to Duolingo manually in the browser
+2. In another terminal, run:
+   ```bash
+   python duolingo_copilot.py --cdp-url http://localhost:9222 --skip-login
+   ```
+   
+   Or set in `.env`:
+   ```bash
+   CHROME_CDP_URL=http://localhost:9222
+   ```
+
+**Method 2: Persistent Browser Profile**
+
+Use a Chrome user data directory to maintain login sessions:
+
+```bash
+python duolingo_copilot.py --user-data-dir /path/to/chrome/profile
+```
+
+Or set in `.env`:
+```bash
+CHROME_USER_DATA_DIR=/path/to/chrome/profile
+```
+
 ### Manual Login
 
 If you prefer not to store your credentials, you can skip the automatic login:
@@ -69,6 +137,17 @@ If you prefer not to store your credentials, you can skip the automatic login:
 2. Run the script
 3. Manually log in to Duolingo when the browser opens
 4. The bot will wait 30 seconds before proceeding with the lesson
+
+### Command Line Options
+
+```bash
+python duolingo_copilot.py --help
+```
+
+Options:
+- `--cdp-url URL`: Chrome DevTools Protocol URL (e.g., `http://localhost:9222`)
+- `--user-data-dir PATH`: Chrome user data directory path
+- `--skip-login`: Skip login step (use with existing session)
 
 ### Advanced Usage
 
@@ -115,21 +194,49 @@ The AI agent:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `BROWSER_USE_API_KEY` | Yes | API key from Browser Use Cloud |
+| `BROWSER_USE_API_KEY` | No* | API key from Browser Use Cloud |
+| `OPENAI_API_KEY` | No* | OpenAI API key or compatible API key |
+| `OPENAI_BASE_URL` | No | Custom base URL for OpenAI-compatible APIs |
+| `OPENAI_MODEL` | No | Model name (default: gpt-4) |
+| `CHROME_CDP_URL` | No | Chrome DevTools Protocol URL for existing browser |
+| `CHROME_USER_DATA_DIR` | No | Path to Chrome user data directory |
 | `DUOLINGO_USERNAME` | No | Your Duolingo email/username |
 | `DUOLINGO_PASSWORD` | No | Your Duolingo password |
 
-### Browser Use Cloud
+*Either `BROWSER_USE_API_KEY` or `OPENAI_API_KEY` must be set.
 
-This project uses Browser Use Cloud's LLM service, which is optimized for browser automation tasks. New signups get $10 in free credits.
+### LLM Configuration
 
-Alternatively, you can use other LLM providers (OpenAI, Anthropic, etc.) by modifying the code to use a different LLM. See [browser-use documentation](https://docs.browser-use.com) for details.
+**Browser Use Cloud** (Default option)
+
+This project uses Browser Use Cloud's LLM service by default, which is optimized for browser automation tasks. New signups get $10 in free credits.
+
+**OpenAI or OpenAI-compatible APIs**
+
+You can also use OpenAI or any OpenAI-compatible API (such as Azure OpenAI, local LLMs, or other providers):
+
+```bash
+# .env file example for OpenAI
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4
+
+# .env file example for Azure OpenAI
+OPENAI_API_KEY=your-azure-key
+OPENAI_BASE_URL=https://your-resource.openai.azure.com/openai/deployments/your-deployment
+OPENAI_MODEL=gpt-4
+
+# .env file example for local LLM (like LM Studio)
+OPENAI_API_KEY=lm-studio
+OPENAI_BASE_URL=http://localhost:1234/v1
+OPENAI_MODEL=local-model
+```
 
 ## Troubleshooting
 
-### "BROWSER_USE_API_KEY not found"
+### "Either OPENAI_API_KEY or BROWSER_USE_API_KEY must be set"
 - Make sure you've created a `.env` file from `.env.example`
-- Add your API key from https://cloud.browser-use.com/new-api-key
+- Add either your Browser Use API key from https://cloud.browser-use.com/new-api-key
+- Or add your OpenAI API key (or compatible API credentials)
 
 ### Browser doesn't open
 - Install Chromium: `python -m playwright install chromium`
