@@ -58,10 +58,15 @@ class AdvancedDuolingoCopilot:
         )
         def log_progress(lesson_name: str, status: str) -> str:
             """Log lesson completion."""
-            with open(self.log_file, 'a') as f:
-                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                f.write(f"{timestamp} - {lesson_name}: {status}\n")
-            return f"Logged: {lesson_name} - {status}"
+            try:
+                with open(self.log_file, 'a') as f:
+                    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    f.write(f"{timestamp} - {lesson_name}: {status}\n")
+                return f"Logged: {lesson_name} - {status}"
+            except (IOError, OSError) as e:
+                error_msg = f"Failed to log progress: {str(e)}"
+                print(f"Warning: {error_msg}")
+                return error_msg
     
     async def complete_specific_skill(self, skill_name: str):
         """

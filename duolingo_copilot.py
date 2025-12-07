@@ -14,14 +14,19 @@ from browser_use import Agent, Browser, ChatBrowserUse
 class DuolingoCopilot:
     """AI-powered Duolingo learning assistant."""
     
-    def __init__(self):
-        """Initialize the Duolingo copilot."""
+    def __init__(self, manual_login_wait_time: int = 30):
+        """Initialize the Duolingo copilot.
+        
+        Args:
+            manual_login_wait_time: Seconds to wait for manual login (default: 30)
+        """
         load_dotenv()
         
         # Get credentials from environment
         self.username = os.getenv('DUOLINGO_USERNAME')
         self.password = os.getenv('DUOLINGO_PASSWORD')
         self.browser_use_api_key = os.getenv('BROWSER_USE_API_KEY')
+        self.manual_login_wait_time = manual_login_wait_time
         
         # Validate environment variables
         if not self.browser_use_api_key:
@@ -144,8 +149,8 @@ class DuolingoCopilot:
         else:
             print("\n⚠️  Step 1: Skipping login (no credentials provided)")
             print("Please log in manually to Duolingo in the browser window.")
-            print("Waiting 30 seconds for manual login...")
-            await asyncio.sleep(30)
+            print(f"Waiting {self.manual_login_wait_time} seconds for manual login...")
+            await asyncio.sleep(self.manual_login_wait_time)
         
         # Step 2: Complete lesson
         print("\n📚 Step 2: Starting Japanese lesson...")

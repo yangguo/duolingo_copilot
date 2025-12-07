@@ -1,3 +1,3 @@
-browser-use
-python-dotenv
-langchain-openai
+browser-use>=0.10.0,<1.0.0
+python-dotenv>=1.0.0,<2.0.0
+langchain-openai>=1.0.0,<2.0.0
