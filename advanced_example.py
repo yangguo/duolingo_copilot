@@ -10,6 +10,7 @@ This script demonstrates advanced usage of the Duolingo Copilot including:
 
 import asyncio
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 from browser_use import Agent, Browser, ChatBrowserUse, Tools
 
@@ -17,10 +18,23 @@ from browser_use import Agent, Browser, ChatBrowserUse, Tools
 class AdvancedDuolingoCopilot:
     """Advanced Duolingo copilot with custom capabilities."""
     
-    def __init__(self):
-        """Initialize the advanced copilot."""
+    def __init__(self, log_file: str = 'lesson_log.txt'):
+        """Initialize the advanced copilot.
+        
+        Args:
+            log_file: Path to the lesson log file (default: 'lesson_log.txt')
+        """
         load_dotenv()
         
+        # Validate environment
+        browser_use_api_key = os.getenv('BROWSER_USE_API_KEY')
+        if not browser_use_api_key:
+            raise ValueError(
+                "BROWSER_USE_API_KEY not found in environment. "
+                "Get your API key from https://cloud.browser-use.com/new-api-key"
+            )
+        
+        self.log_file = log_file
         self.browser = Browser()
         self.llm = ChatBrowserUse()
         
@@ -44,8 +58,7 @@ class AdvancedDuolingoCopilot:
         )
         def log_progress(lesson_name: str, status: str) -> str:
             """Log lesson completion."""
-            with open('lesson_log.txt', 'a') as f:
-                from datetime import datetime
+            with open(self.log_file, 'a') as f:
                 timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 f.write(f"{timestamp} - {lesson_name}: {status}\n")
             return f"Logged: {lesson_name} - {status}"

@@ -10,7 +10,9 @@ This script checks:
 """
 
 import sys
+import os
 import importlib.util
+from dotenv import load_dotenv
 
 
 def check_python_version():
@@ -55,9 +57,6 @@ def check_dependencies():
 def check_environment():
     """Check environment configuration."""
     print("\n⚙️  Checking environment configuration...")
-    
-    import os
-    from dotenv import load_dotenv
     
     load_dotenv()
     
