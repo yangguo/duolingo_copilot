@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Duolingo Copilot - An AI-powered bot to automate Duolingo Japanese learning tests
+Duolingo Copilot - An AI-powered bot to automate Duolingo Japanese learning lessons
 using browser-use library for browser automation.
 """
 
