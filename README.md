@@ -78,6 +78,24 @@ You can modify `duolingo_copilot.py` to:
 - Run on a schedule using cron/task scheduler
 - Customize the AI's behavior
 
+See `advanced_example.py` for more examples.
+
+## Testing
+
+Run the comprehensive test suite to verify everything works:
+
+```bash
+python test_copilot.py
+```
+
+This will run unit tests, integration checks, and identify any issues. See [TESTING.md](TESTING.md) for detailed testing documentation.
+
+For a quick installation check:
+
+```bash
+python test_setup.py
+```
+
 ## How It Works
 
 The Duolingo Copilot uses the browser-use library, which combines:
