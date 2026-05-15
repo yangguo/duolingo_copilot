@@ -63,6 +63,18 @@ That's it! The bot will:
 # Basic usage - complete one lesson
 python duolingo_copilot.py
 
+# Use existing Chrome browser (already logged in)
+# First, start Chrome with remote debugging:
+./start_chrome_debug.sh   # Linux/macOS
+# or
+start_chrome_debug.bat    # Windows
+
+# Then in another terminal:
+python duolingo_copilot.py --cdp-url http://localhost:9222 --skip-login
+
+# Use persistent browser profile (maintains login)
+python duolingo_copilot.py --user-data-dir /path/to/chrome/profile
+
 # Run advanced examples
 python advanced_example.py
 
@@ -81,8 +93,9 @@ python test_setup.py
 
 ## Troubleshooting
 
-### "BROWSER_USE_API_KEY not found"
+### "Either OPENAI_API_KEY or BROWSER_USE_API_KEY must be set"
 → Create a `.env` file and add your API key from https://cloud.browser-use.com/new-api-key
+  Or add your OpenAI API key
 
 ### "No module named 'browser_use'"
 → Run `pip install -r requirements.txt`

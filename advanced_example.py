@@ -18,11 +18,12 @@ from browser_use import Agent, Browser, ChatBrowserUse, Tools
 class AdvancedDuolingoCopilot:
     """Advanced Duolingo copilot with custom capabilities."""
     
-    def __init__(self, log_file: str = 'lesson_log.txt'):
+    def __init__(self, log_file: str = 'lesson_log.txt', cdp_url: str = None):
         """Initialize the advanced copilot.
         
         Args:
             log_file: Path to the lesson log file (default: 'lesson_log.txt')
+            cdp_url: Chrome DevTools Protocol URL for existing browser (optional)
         """
         load_dotenv()
         
@@ -35,7 +36,14 @@ class AdvancedDuolingoCopilot:
             )
         
         self.log_file = log_file
-        self.browser = Browser()
+        
+        # Initialize browser with optional CDP URL
+        browser_kwargs = {}
+        if cdp_url:
+            browser_kwargs['cdp_url'] = cdp_url
+            print(f"🌐 Connecting to existing browser at: {cdp_url}")
+        
+        self.browser = Browser(**browser_kwargs)
         self.llm = ChatBrowserUse()
         
         # Create custom tools
@@ -202,6 +210,26 @@ async def example_daily_goal():
     print("✅ Daily goal achieved!")
 
 
+async def example_existing_browser():
+    """Example: Use existing browser session."""
+    print("📚 Example 5: Using existing browser session")
+    print("=" * 60)
+    print()
+    print("This example demonstrates connecting to an existing Chrome browser.")
+    print("Make sure you have Chrome running with remote debugging:")
+    print("  chrome --remote-debugging-port=9222")
+    print()
+    
+    cdp_url = input("Enter CDP URL (default: http://localhost:9222): ").strip()
+    if not cdp_url:
+        cdp_url = "http://localhost:9222"
+    
+    copilot = AdvancedDuolingoCopilot(cdp_url=cdp_url)
+    await copilot.complete_multiple_lessons(num_lessons=1)
+    
+    print("✅ Lesson completed using existing browser!")
+
+
 async def main():
     """Main entry point."""
     print("🤖 Advanced Duolingo Copilot Examples")
@@ -212,10 +240,11 @@ async def main():
     print("2. Complete multiple lessons (3 lessons)")
     print("3. Practice weak skills")
     print("4. Achieve daily XP goal")
-    print("5. Exit")
+    print("5. Use existing browser session")
+    print("6. Exit")
     print()
     
-    choice = input("Enter your choice (1-5): ").strip()
+    choice = input("Enter your choice (1-6): ").strip()
     
     if choice == "1":
         await example_specific_skill()
@@ -226,10 +255,12 @@ async def main():
     elif choice == "4":
         await example_daily_goal()
     elif choice == "5":
+        await example_existing_browser()
+    elif choice == "6":
         print("Goodbye!")
         return
     else:
-        print("Invalid choice. Please run again and select 1-5.")
+        print("Invalid choice. Please run again and select 1-6.")
 
 
 if __name__ == "__main__":

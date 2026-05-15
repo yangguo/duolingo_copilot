@@ -9,16 +9,19 @@ import os
 import sys
 from dotenv import load_dotenv
 from browser_use import Agent, Browser, ChatBrowserUse
+from langchain_openai import ChatOpenAI
 
 
 class DuolingoCopilot:
     """AI-powered Duolingo learning assistant."""
     
-    def __init__(self, manual_login_wait_time: int = 30):
+    def __init__(self, manual_login_wait_time: int = 30, cdp_url: str = None, user_data_dir: str = None):
         """Initialize the Duolingo copilot.
         
         Args:
             manual_login_wait_time: Seconds to wait for manual login (default: 30)
+            cdp_url: Chrome DevTools Protocol URL to connect to existing browser (optional)
+            user_data_dir: Path to Chrome user data directory for persistent sessions (optional)
         """
         load_dotenv()
         
@@ -26,18 +29,47 @@ class DuolingoCopilot:
         self.username = os.getenv('DUOLINGO_USERNAME')
         self.password = os.getenv('DUOLINGO_PASSWORD')
         self.browser_use_api_key = os.getenv('BROWSER_USE_API_KEY')
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
+        self.openai_base_url = os.getenv('OPENAI_BASE_URL')
+        self.openai_model = os.getenv('OPENAI_MODEL', 'gpt-4')
         self.manual_login_wait_time = manual_login_wait_time
         
-        # Validate environment variables
-        if not self.browser_use_api_key:
-            raise ValueError(
-                "BROWSER_USE_API_KEY not found in environment. "
-                "Get your API key from https://cloud.browser-use.com/new-api-key"
-            )
+        # Browser connection settings
+        self.cdp_url = cdp_url or os.getenv('CHROME_CDP_URL')
+        self.user_data_dir = user_data_dir or os.getenv('CHROME_USER_DATA_DIR')
         
-        # Initialize browser and LLM
-        self.browser = Browser()
-        self.llm = ChatBrowserUse()
+        # Initialize browser
+        browser_kwargs = {}
+        if self.cdp_url:
+            browser_kwargs['cdp_url'] = self.cdp_url
+            print(f"🌐 Connecting to existing browser at: {self.cdp_url}")
+        if self.user_data_dir:
+            browser_kwargs['user_data_dir'] = self.user_data_dir
+            print(f"💾 Using browser profile: {self.user_data_dir}")
+        
+        self.browser = Browser(**browser_kwargs)
+        
+        # Initialize LLM - prefer OpenAI if configured, otherwise use ChatBrowserUse
+        if self.openai_api_key:
+            llm_kwargs = {
+                'api_key': self.openai_api_key,
+                'model': self.openai_model,
+            }
+            if self.openai_base_url:
+                llm_kwargs['base_url'] = self.openai_base_url
+            
+            self.llm = ChatOpenAI(**llm_kwargs)
+            print(f"🤖 Using OpenAI-compatible API (model: {self.openai_model})")
+            if self.openai_base_url:
+                print(f"   Base URL: {self.openai_base_url}")
+        elif self.browser_use_api_key:
+            self.llm = ChatBrowserUse()
+            print("🤖 Using Browser Use Cloud LLM")
+        else:
+            raise ValueError(
+                "Either OPENAI_API_KEY or BROWSER_USE_API_KEY must be set. "
+                "For Browser Use API key: https://cloud.browser-use.com/new-api-key"
+            )
     
     async def login_to_duolingo(self):
         """
@@ -130,19 +162,24 @@ class DuolingoCopilot:
         await agent.run()
         return agent
     
-    async def run_full_session(self):
+    async def run_full_session(self, skip_login: bool = False):
         """
         Run a full Duolingo learning session.
         
         This will:
-        1. Log in (if credentials provided)
+        1. Log in (if credentials provided and not skipped)
         2. Complete a Japanese lesson
+        
+        Args:
+            skip_login: Skip login step (useful when using existing browser session)
         """
         print("🤖 Starting Duolingo Copilot...")
         print("=" * 60)
         
         # Step 1: Login
-        if self.username and self.password:
+        if skip_login or self.cdp_url:
+            print("\n⏭️  Step 1: Skipping login (using existing browser session)")
+        elif self.username and self.password:
             print("\n📝 Step 1: Logging in to Duolingo...")
             await self.login_to_duolingo()
             print("✅ Login complete!")
@@ -164,8 +201,19 @@ class DuolingoCopilot:
 async def main():
     """Main entry point for the Duolingo copilot."""
     try:
-        copilot = DuolingoCopilot()
-        await copilot.run_full_session()
+        # Check for command line arguments
+        import argparse
+        parser = argparse.ArgumentParser(description='Duolingo Copilot - AI-powered Duolingo automation')
+        parser.add_argument('--cdp-url', type=str, help='Chrome DevTools Protocol URL (e.g., http://localhost:9222)')
+        parser.add_argument('--user-data-dir', type=str, help='Chrome user data directory path')
+        parser.add_argument('--skip-login', action='store_true', help='Skip login step (use with existing session)')
+        args = parser.parse_args()
+        
+        copilot = DuolingoCopilot(
+            cdp_url=args.cdp_url,
+            user_data_dir=args.user_data_dir
+        )
+        await copilot.run_full_session(skip_login=args.skip_login)
     except ValueError as e:
         print(f"❌ Configuration Error: {e}")
         print("\n📋 Setup Instructions:")
